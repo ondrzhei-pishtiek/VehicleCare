@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VehicleCare | Твій цифровий гараж</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+
+    <div id="landingScreen" class="landing-wrapper">
+        <div class="landing-content">
+            <div class="landing-text animate-slide-right">
+                <h1>Vehicle<span style="color: var(--accent);">Care</span></h1>
+                <h2>Твоя розумна сервісна книжка</h2>
+                <p>Забудь про папірці та блокноти. Плануй ТО, контролюй витрати, отримуй AI-діагностику та генеруй PDF-заявки для СТО в один клік.</p>
+                <ul class="features-list">
+                    <li><i class="fas fa-check-circle"></i> Автоматичне розпізнавання по VIN</li>
+                    <li><i class="fas fa-check-circle"></i> Фінансова аналітика автомобіля</li>
+                    <li><i class="fas fa-check-circle"></i> Розумний AI-механік 24/7</li>
+                    <li><i class="fas fa-check-circle"></i> Інтеграція мап та збереження чеків</li>
+                </ul>
+            </div>
+
+            <div class="auth-box animate-slide-left">
+                <div class="auth-tabs">
+                    <button id="tabLogin" class="active">Вхід</button>
+                    <button id="tabRegister">Реєстрація</button>
+                </div>
+
+                <div id="formLogin">
+                    <h3>З поверненням!</h3>
+                    <input type="text" id="loginUser" placeholder="Логін">
+                    <input type="password" id="loginPass" placeholder="Пароль">
+                    <button id="loginBtn" class="submit-btn">Увійти в Гараж</button>
+                </div>
+
+                <div id="formRegister" style="display: none;">
+                    <h3>Ви ще не з нами?</h3>
+                    <p style="font-size: 0.9rem; color: gray; margin-bottom: 15px;">Реєстрація займає лише 10 секунд.</p>
+                    <input type="text" id="regUser" placeholder="Створіть логін">
+                    <input type="password" id="regPass" placeholder="Створіть пароль">
+                    <button id="registerBtn" class="submit-btn" style="background: var(--accent);">Зареєструватися</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container" id="mainApp" style="display: none;">
+        <aside class="sidebar">
+            <div class="logo"><i class="fas fa-wrench"></i> VehicleCare</div>
+            <nav id="navMenu">
+                <a href="#" data-view="garage" class="active"><i class="fas fa-car"></i> Мій Гараж</a>
+                <a href="#" data-view="history"><i class="fas fa-history"></i> Історія ремонтів</a>
+                <a href="#" data-view="analytics"><i class="fas fa-chart-pie"></i> Аналітика</a>
+                <a href="#" data-view="map"><i class="fas fa-map-marker-alt"></i> Мапа СТО</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="fade-in">
+                <div class="header-title">
+                    <select id="carSelector" class="car-selector"></select>
+                    <button class="add-btn add-car-btn" onclick="openCarModal()">+ Нове авто</button>
+                </div>
+                <div class="header-actions">
+                    <button id="themeToggleBtn" class="icon-btn" title="Змінити тему"><i class="fas fa-moon"></i></button>
+                    <button class="icon-btn" style="color: #0088cc;" onclick="mockTelegram()" title="Підключити Telegram"><i class="fab fa-telegram"></i></button>
+                    <span id="userNameDisplay" style="font-weight: bold; color: var(--accent); margin: 0 10px;"></span>
+                    <button class="add-btn" onclick="logout()" style="background:#ef4444;" title="Вийти"><i class="fas fa-sign-out-alt"></i></button>
+                </div>
+            </header>
+
+            <div id="view-garage" class="view-section active">
+                <div class="interactive-car-panel slide-up">
+                    <div class="car-info-text" id="carInfoCard"></div>
+                    <div class="car-visualizer">
+                        <i class="fas fa-car-side main-car-icon"></i>
+                        <div class="click-zone zone-engine" onclick="openIssueModal('Двигун')" title="Двигун"><i class="fas fa-cogs"></i></div>
+                        <div class="click-zone zone-wheels" onclick="openIssueModal('Ходова частина')" title="Колеса"><i class="fas fa-dharmachakra"></i></div>
+                        <div class="click-zone zone-body" onclick="openIssueModal('Кузов та салон')" title="Кузов"><i class="fas fa-car-battery"></i></div>
+                    </div>
+                </div>
+
+                <div class="stats-grid stagger-group">
+                    <div class="stat-card" style="border-top-color: #3b82f6;">
+                        <h3 id="uiMileage">0 км</h3><p>Поточний пробіг</p>
+                    </div>
+                    <div class="stat-card" id="serviceCard" style="border-top-color: #f59e0b;">
+                        <h3 id="uiNextService">0 км</h3><p id="uiServiceText">До наступного ТО</p>
+                    </div>
+                    <div class="stat-card" style="border-top-color: #ef4444;">
+                        <h3 id="uiHealth">0</h3><p>Критичних проблем</p>
+                    </div>
+                </div>
+
+                <div class="section-header slide-up" style="margin-top: 30px;">
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <h2>Активні задачі</h2>
+                        <button class="add-btn" onclick="openIssueModal('')" style="font-size: 0.9rem;"><i class="fas fa-plus"></i> Запис</button>
+                    </div>
+                    <button class="add-btn" onclick="generatePDF()" style="background: var(--text-main);"><i class="fas fa-file-pdf"></i> PDF для СТО</button>
+                </div>
+                <div id="issuesList"></div>
+            </div>
+
+            <div id="view-history" class="view-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-tools"></i> Історія обслуговування</h2>
+                    <p style="color: var(--text-muted);">Вирішені задачі та збережені чеки</p>
+                </div>
+                <div class="timeline-container" id="historyTimeline"></div>
+            </div>
+
+            <div id="view-analytics" class="view-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-chart-line"></i> Аналітика та Фінанси</h2>
+                    <div>
+                        <button class="add-btn" onclick="exportCSV()" style="background: #10b981; margin-right: 10px;"><i class="fas fa-file-csv"></i> Експорт CSV</button>
+                        <button class="add-btn" onclick="document.getElementById('expenseModal').style.display='flex'">+ Додати витрату</button>
+                    </div>
+                </div>
+
+                <div class="stats-grid" style="margin-bottom: 20px;">
+                    <div class="stat-card" style="border-top-color: #10b981;"><h3 id="uiTotalExpenses">0 грн</h3><p>Всього витрачено</p></div>
+                    <div class="stat-card" style="border-top-color: #8b5cf6;"><h3 id="uiTotalIssues">0</h3><p>Всього поломок</p></div>
+                </div>
+
+                <div style="display: flex; gap: 20px;">
+                    <div class="chart-container"><h3 style="margin-bottom: 15px; text-align: center;">Графік витрат</h3><canvas id="expenseChart"></canvas></div>
+                    <div class="chart-container" style="flex: 1;"><h3 style="margin-bottom: 15px; text-align: center;">Вузли авто</h3><canvas id="issuesPieChart"></canvas></div>
+                </div>
+            </div>
+
+            <div id="view-map" class="view-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-map-marker-alt"></i> Найближчі Автосервіси</h2>
+                    <p style="color: var(--text-muted);">Пошук СТО через Google Maps</p>
+                </div>
+                <div style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid var(--accent);">
+                    <iframe src="https://maps.google.com/maps?q=Автосервіс,СТО&t=&z=13&ie=UTF8&iwloc=&output=embed" width="100%" height="500" frameborder="0" style="border:0;" allowfullscreen></iframe>
+                </div>
+            </div>
+
+            <footer class="app-footer fade-in">
+                <div class="footer-content">
+                    <div><strong>VehicleCare</strong> — Digital Maintenance Tracker<br>&copy; 2026. All Rights Reserved.</div>
+                    <div class="footer-author">Developed by <strong>Ondrzhei Pishtiek</strong><br><a href="https://t.me/dessais" target="_blank"><i class="fab fa-telegram"></i> @dessais</a></div>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- AI АСИСТЕНТ З ОНОВЛЕНИМ UI -->
+    <div class="ai-chat-btn pulse-anim" id="aiOpenBtn"><i class="fas fa-robot"></i></div>
+    <div class="ai-chat-window" id="aiChatWindow">
+        <div class="ai-header">
+            <span><i class="fas fa-microchip"></i> AI Механік</span>
+            <div>
+                <i class="fas fa-sync-alt" id="aiClearBtn" style="cursor:pointer; margin-right: 15px;" title="Очистити пам'ять"></i>
+                <i class="fas fa-times" id="aiCloseBtn" style="cursor:pointer;"></i>
+            </div>
+        </div>
+        <div class="ai-messages" id="aiMessages">
+            <div class="msg ai">Привіт! Я підключений до бази даних твого авто. Опиши симптоми, і я допоможу!</div>
+            <!-- Індикатор завантаження -->
+            <div class="msg ai ai-typing" id="aiTypingIndicator" style="display: none;">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
+        </div>
+        <div class="ai-input">
+            <input type="text" id="aiInput" placeholder="Опишіть проблему...">
+            <button id="aiSendBtn"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <div id="issueModal" class="modal">
+        <div class="modal-content animate-pop">
+            <span class="close-btn" onclick="document.getElementById('issueModal').style.display='none'">&times;</span>
+            <h2>Новий запис</h2>
+            <form id="addIssueForm">
+                <div class="form-group">
+                    <label>Категорія системи:</label>
+                    <select id="issueCat" required>
+                        <option value="Двигун">Двигун</option><option value="Трансмісія / КПП">Трансмісія / КПП</option><option value="Ходова частина">Ходова частина</option>
+                        <option value="Гальмівна система">Гальмівна система</option><option value="Електрика">Електрика та освітлення</option>
+                        <option value="Кузов та салон">Кузов та салон</option><option value="ТО">Планове ТО / Рідини</option><option value="Інше">Інше</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Опис проблеми:</label><input type="text" id="issueDesc" required></div>
+                <div style="display: flex; gap: 10px;">
+                    <div class="form-group" style="flex: 1;"><label>Пробіг (км):</label><input type="number" id="issueMil" required></div>
+                    <div class="form-group" style="flex: 1;"><label>Пріоритет:</label><select id="issuePriority"><option value="Може почекати">Може почекати</option><option value="Критично">Критично</option></select></div>
+                </div>
+                <div class="form-group">
+                    <label>Статус:</label><select id="issueType"><option value="Точний діагноз">Точний діагноз</option><option value="Симптом">Симптом (Діагностика)</option></select>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-camera"></i> Додати фото (Чек / Деталь):</label>
+                    <input type="file" id="issueReceipt" accept="image/*" style="font-size: 0.8rem; padding: 5px;">
+                </div>
+                <button type="submit" class="submit-btn">Зберегти</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="carModal" class="modal">
+        <div class="modal-content animate-pop">
+            <span class="close-btn" onclick="document.getElementById('carModal').style.display='none'">&times;</span>
+            <h2 id="carModalTitle">Автомобіль</h2>
+            <form id="addCarForm">
+                <input type="hidden" id="editCarId" value="">
+                <div class="form-group">
+                    <label>VIN-код:</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="carVin" placeholder="Введіть VIN..." style="flex:1;">
+                        <button type="button" class="add-btn" onclick="decodeVIN()" style="background:var(--accent); font-size:0.8rem;">Розшифрувати</button>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <div class="form-group" style="flex: 1;"><label>Марка:</label><input type="text" id="carMake" required></div>
+                    <div class="form-group" style="flex: 1;"><label>Модель:</label><input type="text" id="carModel" required></div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <div class="form-group" style="flex: 1;"><label>Рік:</label><input type="number" id="carYear" required></div>
+                    <div class="form-group" style="flex: 1;"><label>Двигун:</label><input type="text" id="carEngine" required></div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <div class="form-group" style="flex: 1;"><label>Держ. номер:</label><input type="text" id="carPlate" required></div>
+                    <div class="form-group" style="flex: 1;"><label>Колір:</label><input type="text" id="carColor" required></div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <div class="form-group" style="flex: 1;"><label>Пробіг зараз:</label><input type="number" id="carMil" value="0" required></div>
+                    <div class="form-group" style="flex: 1;"><label>Пробіг ост. ТО:</label><input type="number" id="carServMil" value="0" required></div>
+                </div>
+                <button type="submit" class="submit-btn">Зберегти автомобіль</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="expenseModal" class="modal">
+        <div class="modal-content animate-pop">
+            <span class="close-btn" onclick="document.getElementById('expenseModal').style.display='none'">&times;</span>
+            <h2>Додати витрату</h2>
+            <form id="addExpenseForm">
+                <div class="form-group"><label>Сума (грн):</label><input type="number" id="expAmount" required></div>
+                <div class="form-group"><label>За що:</label><input type="text" id="expDesc" required></div>
+                <div class="form-group"><label>Дата:</label><input type="date" id="expDate" required></div>
+                <button type="submit" class="submit-btn">Зберегти</button>
+            </form>
+        </div>
+    </div>
+
+    <div style="display: none;">
+        <div id="pdfTemplate" style="padding: 20px; font-family: Arial; color: #000; background: #fff; width: 700px;">
+            <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 25px;">
+                <h1 style="margin: 0; font-size: 22px;">Заявка на технічне обслуговування</h1>
+                <p style="margin: 5px 0 0 0; color: #555; font-size: 14px;">Акт огляду та перелік робіт</p>
+            </div>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 14px;">
+                <tr><td style="padding: 8px; border: 1px solid #ccc; width: 35%; font-weight: bold;">Автомобіль:</td><td style="padding: 8px; border: 1px solid #ccc;" id="pdfCarName"></td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ccc; font-weight: bold;">VIN-код:</td><td style="padding: 8px; border: 1px solid #ccc;" id="pdfCarVin"></td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ccc; font-weight: bold;">Ідентифікатор (ДНЗ):</td><td style="padding: 8px; border: 1px solid #ccc;" id="pdfCarPlate"></td></tr>
+                <tr><td style="padding: 8px; border: 1px solid #ccc; font-weight: bold;">Пробіг:</td><td style="padding: 8px; border: 1px solid #ccc;" id="pdfCarMileage"></td></tr>
+            </table>
+            <h3 style="margin-bottom: 10px; font-size: 16px;">Перелік заявлених проблем:</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px; font-size: 13px;">
+                <thead><tr style="background: #eee;"><th style="padding:8px; border:1px solid #ccc;">#</th><th style="padding:8px; border:1px solid #ccc;">Вузол</th><th style="padding:8px; border:1px solid #ccc;">Симптоми</th><th style="padding:8px; border:1px solid #ccc;">Тип</th></tr></thead>
+                <tbody id="pdfIssuesBody"></tbody>
+            </table>
+            <div style="margin-top: 40px; display: flex; justify-content: space-between; font-size: 14px;">
+                <div style="width: 45%;"><p><strong>Підпис замовника:</strong></p><div style="border-bottom: 1px solid #000;"></div></div>
+                <div style="width: 45%;"><p><strong>Підпис майстра:</strong></p><div style="border-bottom: 1px solid #000;"></div></div>
+            </div>
+            <p style="text-align: right; margin-top: 15px; font-size: 11px; color: #777;" id="pdfDate"></p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
