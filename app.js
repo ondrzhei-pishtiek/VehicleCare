@@ -330,7 +330,7 @@ async function loadAnalytics() {
     });
 }
 
-// === ГЕНЕРАЦІЯ PDF ===
+// === ГЕНЕРАЦІЯ PDF (ВИПРАВЛЕНО) ===
 window.generatePDF = function() {
     if(!currentCarData || currentIssues.length === 0) return alert("Немає даних для формування заявки.");
 
@@ -363,9 +363,23 @@ window.generatePDF = function() {
     }
 
     const element = document.getElementById('pdfTemplate');
-    element.style.display = 'block';
-    const opt = { margin: [10, 10, 15, 10], filename: `Service_Act_${currentCarData.license_plate}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-    html2pdf().set(opt).from(element).save().then(() => element.style.display = 'none');
+    const parentContainer = element.parentElement;
+
+    // Робимо батьківський блок видимим перед генерацією PDF
+    parentContainer.style.display = 'block';
+
+    const opt = {
+        margin: [10, 10, 15, 10],
+        filename: `Service_Act_${currentCarData.license_plate}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+        // Ховаємо блок назад після завершення
+        parentContainer.style.display = 'none';
+    });
 }
 
 function setupModals() {
