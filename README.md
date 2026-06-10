@@ -24,13 +24,13 @@
 Рівень даних (Database): Автоматичне логування задач у SQLite.
 
 📦 Інструкція із запуску
-Встановіть залежності: pip install -r backend/requirements.txt
+Встановіть залежності: py -m pip install -r requirements.txt
 
 Створіть файл backend/.env та додайте ваш ключ: COHERE_API_KEY=ваш_ключ
 
-Запустіть сервер: python -m uvicorn main:app --reload всередині папки backend.
+Запустіть сервер: py -m uvicorn main:app --reload
 
-Відкрийте frontend/index.html у браузері.
+Відкрийте index.html у браузері.
 
 🎓 Автор
 Ондржей Піштєк — Студент кафедри програмної інженерії.
